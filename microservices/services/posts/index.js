@@ -1,22 +1,26 @@
 import express from 'express';
+import { randomBytes } from 'crypto';
 
 const app = express();
 
 app.use(express.json());
 
-const posts = [];
+const posts = {};
 
 app.post('/posts', (req, res) => {
-  const newPost = {
-    id: posts.length + 1,
-    content: req.body.content
+  const id = randomBytes(4).toString('hex');
+  const { title } = req.body;
+
+  posts[id] = {
+    id,
+    title
   };
-  posts.push(newPost);
-  res.status(201).json(newPost);
+
+  return res.status(201).send(posts[id]);
 });
 
 app.get('/posts', (req, res) => {
-  res.json(posts);
+  res.send(posts);
 });
 
 app.listen(4001, () => {
