@@ -1,22 +1,30 @@
 import express from 'express'
+import { randomBytes } from 'crypto';
 
 const app = express();
 
 app.use(express.json());
 
-const comments = [];
+const commentsByPostId = {};
 
-app.post('/comments', (req, res) => {
-  const newComment = {
-    id: comments.length + 1,
-    content: req.body.content
-  };
-  comments.push(newComment);
-  res.status(201).json(newComment);
+app.post('/posts/:id/comments', (req, res) => {
+  const commentId = randomBytes(4).toString('hex');
+  const { content } = req.body;
+
+  const comments = commentsByPostId[req.params.id] || [];
+
+  comments.push({
+    id: commentId,
+    content,
+  });
+
+  commentsByPostId[req.params.id] = comments;
+
+  res.status(201).send(comments);
 });
 
-app.get('/comments', (req, res) => {
-  res.json(comments);
+app.get('/posts/:id/comments', (req, res) => {
+  return res.send(commentsByPostId[req.params.id] || []);
 });
 
 app.listen(4000, () => {
